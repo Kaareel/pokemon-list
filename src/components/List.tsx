@@ -1,12 +1,49 @@
-// biome-ignore lint/style/useImportType: <explanation>
-import { PokemonData } from "./Types";
+import { useEffect, useState } from "react";
+import type { Pokemon } from "./Types";
 import { Link } from "react-router-dom";
+import axios from "axios";
 
-interface Props {
-    list: PokemonData[];
+interface PokemonResult {
+    name: string;
+    url: string;
+}
+interface Data {
+
+    next: string;
+    results: PokemonResult[];
 }
 
-function List(props: Props) {
+function List() {
+    const [pokemons, setPokemons] = useState<Pokemon[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    useEffect(() => {
+        
+        const fetchPokemons = async () => {
+          try {
+            const response = await axios.get('https://pokeapi.co/api/v2/pokemon?limit=649');
+            const {results} = response.data;
+            setPokemons(results);
+
+    
+            setLoading(false);
+          } catch (error) {
+            setError('Error fetching data');
+            setLoading(false);
+          }
+        };
+    
+        fetchPokemons();
+      }, []);
+    
+      if (error) {
+        return <div>{error}</div>;
+      }
+    
+      if (!pokemons) {
+        return <div>Loading...</div>;
+      }
+    
     return (
         <div className="flex flex-col">
             <div className="m-3 border flex justify-center">
@@ -20,7 +57,7 @@ function List(props: Props) {
                         </tr>
                     </thead>
                     <tbody>
-                        {props.list.map((pokemon, index) => (
+                        {pokemons.map((pokemon, index) => (
                             // biome-ignore lint/correctness/useJsxKeyInIterable: <explanation>
                             <tr className="grid grid-cols-4 text-center items-center">
                                 <td>{pokemon.id}</td>
